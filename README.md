@@ -4,7 +4,7 @@ A production-grade, DevOps-enabled WhatsApp assistant that acts as a first-level
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
 1. **Official WhatsApp Cloud API Integration Layer**:
    - Webhook endpoint with HMAC-SHA256 signature verification (`X-Hub-Signature-256`) and Meta verification handshake (`hub.challenge`).
@@ -40,7 +40,7 @@ A production-grade, DevOps-enabled WhatsApp assistant that acts as a first-level
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 .
@@ -104,7 +104,7 @@ A production-grade, DevOps-enabled WhatsApp assistant that acts as a first-level
 
 ---
 
-## 🚀 Quick Start (Local Development)
+## Quick Start (Local Development)
 
 ### 1. Prerequisites
 - Node.js 20+ (Node.js 22 recommended)
@@ -139,7 +139,7 @@ Try queries like:
 
 ---
 
-## 🐳 Docker & Docker Compose Setup
+## Docker & Docker Compose Setup
 
 Run the complete backend stack with PostgreSQL 16:
 ```bash
@@ -160,7 +160,7 @@ Verify service endpoints:
 
 ---
 
-## ☸️ Kubernetes Deployment
+## Kubernetes Deployment
 
 Deploy to your Kubernetes cluster:
 ```bash
@@ -182,7 +182,7 @@ kubectl apply -f k8s/hpa.yaml
 
 ---
 
-## ☁️ Terraform Infrastructure (AWS)
+## Terraform Infrastructure (AWS)
 
 To provision a managed PostgreSQL 16 Amazon RDS instance and isolated VPC:
 ```bash
@@ -194,7 +194,7 @@ terraform apply -var="db_password=YourSecurePassword123!"
 
 ---
 
-## 📱 Meta WhatsApp Cloud API Setup
+## Meta WhatsApp Cloud API Setup
 
 1. In the [Meta for Developers Portal](https://developers.facebook.com/), create a **Business App** and add the **WhatsApp** product.
 2. In WhatsApp > Configuration:
