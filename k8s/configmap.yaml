@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: whatsapp-helpdesk-config
+  namespace: whatsapp-helpdesk
+data:
+  PORT: "3000"
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+  METRICS_ENABLED: "true"
+  DEPARTMENT_NAME: "Department of Computer Science & Engineering"
+  INSTITUTION_NAME: "National Institute of Technology"
+  HOD_DISPLAY_NAME: "Dr. A. Sharma (Head of Department)"
+  HOD_OFFICE_ROOM: "Room 304, Academic Block A"
+  HOD_OFFICE_HOURS: "Monday to Friday, 10:00 AM - 1:00 PM and 2:30 PM - 4:30 PM"
+  SUPPORT_HOURS_START: "09:00"
+  SUPPORT_HOURS_END: "17:00"
+  SUPPORT_DAYS: "1,2,3,4,5"
+  DEFAULT_GOOGLE_FORM_URL: "https://forms.gle/universal-student-requirement-sample"
+  CERTIFICATE_FORM_URL: "https://forms.gle/certificate-request-sample"
+  ATTENDANCE_FORM_URL: "https://forms.gle/attendance-leave-sample"
+  APPOINTMENT_FORM_URL: "https://forms.gle/hod-appointment-sample"
+  GRIEVANCE_FORM_URL: "https://forms.gle/student-grievance-sample"
+  HOD_NOTIFICATION_EMAIL: "hod.cse@institution.edu"
+  ADMIN_NOTIFICATION_EMAIL: "admin.cse@institution.edu"

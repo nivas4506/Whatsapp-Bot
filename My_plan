@@ -1,0 +1,176 @@
+# Implementation Plan - WhatsApp Student Helpdesk Assistant (HOD)
+
+Production-grade TypeScript/Node.js backend service for the **WhatsApp Student Helpdesk Assistant for the Head of Department (HOD)**, powered by **PostgreSQL** and equipped with an official **Meta WhatsApp Cloud API Integration Layer** and a complete **DevOps production toolkit**.
+
+---
+
+## The WhatsApp Integration Layer (`src/adapters/whatsapp/`)
+
+The WhatsApp layer connects the backend service with Meta's WhatsApp Cloud API (or authorized Business Solution Providers like Twilio/Infobip/Gupshup). It handles inbound webhooks, security verification, message normalization, and outbound messaging.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Student as Student (WhatsApp)
+    participant Meta as Meta WhatsApp Cloud API
+    participant WH as Webhook Route (POST /webhooks/whatsapp)
+    participant Sig as Signature Validator (HMAC SHA-256)
+    participant Norm as Message Normalizer
+    participant Orch as Conversation Orchestrator
+    participant Client as WhatsApp Graph API Client
+
+    Student->>Meta: Sends WhatsApp message ("Need bonafide certificate")
+    Meta->>WH: POST /webhooks/whatsapp (Payload + X-Hub-Signature-256)
+    WH->>Sig: Verify X-Hub-Signature-256 with WHATSAPP_APP_SECRET
+    Sig-->>WH: Signature OK
+    WH-->>Meta: 200 OK (immediate acknowledgment < 3s)
+    WH->>Norm: Parse raw Meta payload
+    Norm->>Orch: Normalized Message (from, msg_id, text, timestamp)
+    Orch->>Orch: Process via State Machine & Classifier
+    Orch->>Client: Send Reply (Text / Interactive Form Link)
+    Client->>Meta: POST https://graph.facebook.com/v20.0/{PHONE_NUMBER_ID}/messages
+    Meta->>Student: WhatsApp reply delivered with Google Form link
+```
+
+### Components of the WhatsApp Layer:
+
+1. **Webhook Verification & Security (`src/adapters/whatsapp/signature.ts`)**:
+   - `GET /webhooks/whatsapp`: Responds to Meta's initial handshake (`hub.mode === 'subscribe'` and `hub.verify_token`).
+   - `POST /webhooks/whatsapp`: Validates the `X-Hub-Signature-256` HTTP header against the raw body buffer using the app's secret key (`crypto.createHmac('sha256', APP_SECRET)`).
+
+2. **Inbound Message Normalizer (`src/adapters/whatsapp/normalizer.ts`)**:
+   - Unpacks Meta's nested payload structure (`entry[].changes[].value.messages[]`).
+   - Extracts:
+     - Sender phone number (`from`)
+     - Unique provider message ID (`id`) for database idempotency
+     - Message timestamp (`timestamp`)
+     - Message content (text message body, interactive button reply ID, or quick reply)
+
+3. **Outbound WhatsApp Client (`src/adapters/whatsapp/client.ts`)**:
+   - Sends outbound messages through the official Meta Graph API:
+     - Text messages (FAQ answers, office hours, safety disclosures).
+     - Interactive button messages (category quick-pick: *"Certificates"*, *"Leave"*, *"Attendance"*, *"Appointments"*).
+     - CTA URL messages (direct clickable Google Form link buttons).
+   - Handles Bearer token authentication (`WHATSAPP_API_TOKEN`) and Phone Number ID (`WHATSAPP_PHONE_NUMBER_ID`).
+   - Includes retry logic with exponential backoff for transient network issues.
+
+4. **Local WhatsApp Simulator (`src/simulator/cli.ts` & `src/simulator/mock-client.ts`)**:
+   - Enables full end-to-end testing of the WhatsApp conversation flow locally in terminal without requiring a live Meta developer account during development.
+
+---
+
+## Architecture & System Topology
+
+```mermaid
+flowchart TD
+    subgraph WhatsApp Channel
+        S[Student] <--> W[Meta WhatsApp Cloud API]
+    end
+
+    subgraph "WhatsApp Layer (src/adapters/whatsapp/)"
+        W -->|POST /webhooks/whatsapp| WG[Webhook Receiver]
+        WG --> SIG[HMAC SHA-256 Signature Validator]
+        SIG --> NORM[Payload Normalizer]
+        CLIENT[Outbound Graph API Client] -->|POST /messages| W
+    end
+
+    subgraph "Core Domain Layer (src/core/)"
+        NORM --> ORCH[Conversation Orchestrator]
+        ORCH <--> SM[State Machine]
+        ORCH --> CLASS[Intent & Risk Classifier]
+        ORCH --> COMP[Response Composer]
+        COMP --> CLIENT
+    end
+
+    subgraph "Services & Persistence"
+        ORCH --> FAQ[Approved FAQ Service]
+        ORCH --> FORM[Google Form Registry]
+        ORCH --> REQ[Requirement Service]
+        ORCH --> NOTIF[HOD Alert Service]
+        REQ --> PG[(PostgreSQL 16)]
+    end
+
+    subgraph "DevOps & Infrastructure"
+        DKR[Multi-stage Dockerfile]
+        DC[Docker Compose]
+        K8S[Kubernetes Manifests + Ingress TLS]
+        GHA[GitHub Actions CI/CD]
+        PROM[Prometheus /metrics]
+        TF[Terraform RDS + Containers]
+    end
+```
+
+---
+
+## Proposed Changes
+
+### Phase 1: Core Service & PostgreSQL Layer
+- `package.json` & `tsconfig.json`: TypeScript, Express, `pg`, `zod`, `pino`, `prom-client`, `vitest`.
+- `src/config/index.ts`: Config schema for DB, WhatsApp, and Department.
+- `src/store/migrations/001_initial_schema.sql`: PostgreSQL DDL schema (`student_contacts`, `conversations`, `messages`, `requirements`, `faq_entries`, `form_configs`, `audit_events`).
+- `src/store/db.ts` & `src/store/migrate.ts`: Connection pool with health checks and migration runner.
+- `src/store/repositories/`: PostgreSQL repositories for contacts, conversations, messages, requirements, FAQs, and forms.
+
+### Phase 2: WhatsApp Layer (`src/adapters/whatsapp/`)
+- `src/adapters/whatsapp/types.ts`: TypeScript interfaces for Meta WhatsApp Cloud API webhooks and outbound message schemas.
+- `src/adapters/whatsapp/signature.ts`: HMAC-SHA256 signature verifier for `X-Hub-Signature-256`.
+- `src/adapters/whatsapp/normalizer.ts`: Parser extracting sender phone, text, message ID, timestamp.
+- `src/adapters/whatsapp/client.ts`: Outbound message sender supporting plain text and interactive button/URL payloads.
+- `src/routes/webhook.ts`: Express router handling `GET /webhooks/whatsapp` (challenge) and `POST /webhooks/whatsapp` (events).
+
+### Phase 3: Domain Engine & Business Logic
+- `src/core/state-machine.ts`: State transitions (`NEW`, `UNDERSTANDING`, `FAQ_ANSWERING`, `REQUIREMENT_INTAKE`, `FORM_PENDING`, `HUMAN_REVIEW`, `CLOSED`).
+- `src/core/classifier.ts`: Keyword & rule-based classification and risk/safety escalation detection.
+- `src/core/orchestrator.ts`: Pipeline coordinating idempotency, support hours, FAQ retrieval, requirement creation, and response formatting.
+- `src/services/faq-service.ts`: Knowledge retrieval from approved department FAQ list.
+- `src/services/form-registry.ts`: Resolves active Google Form link per category.
+- `src/services/notification-service.ts`: HOD/admin alert notifications.
+
+### Phase 4: Internal APIs & Observability
+- `src/routes/requirements.ts`: `GET` and `PATCH` for HOD/admin to manage requests.
+- `src/routes/forms-sync.ts`: Endpoint to sync Google Form submissions back to student requirement records.
+- `src/routes/health.ts`: `/health/live` and `/health/ready` (DB ping).
+- `src/routes/metrics.ts`: Prometheus `/metrics` exporter.
+
+### Phase 5: DevOps Production Toolkit
+- `Dockerfile`: Production multi-stage Alpine build (non-root `node` user, dumb-init).
+- `docker-compose.yml`: Local multi-container setup (API + PostgreSQL 16).
+- `.github/workflows/ci.yml`: Automated lint, typecheck, test with PostgreSQL container, audit, and container build.
+- `.github/workflows/cd.yml`: Production container build & push to GitHub Container Registry (`ghcr.io`).
+- `k8s/`: Kubernetes manifests (`deployment.yaml`, `service.yaml`, `ingress.yaml`, `configmap.yaml`, `secret.yaml`, `hpa.yaml`).
+- `terraform/`: Infrastructure as Code for RDS PostgreSQL and container deployment.
+
+### Phase 6: Local Simulator & Verification
+- `src/simulator/cli.ts`: Interactive terminal chat simulator to test the bot without live WhatsApp credentials.
+- `tests/`: Automated unit & integration tests for webhook verification, idempotency, FAQ matching, escalation, and requirement creation.
+
+---
+
+## Verification Plan
+
+### Automated Tests
+```bash
+npm run test
+```
+- Webhook signature validation & challenge response.
+- Idempotency with duplicate WhatsApp message IDs.
+- Conversation state transitions & FAQ response generation.
+- Human escalation triggers and Google Form link delivery.
+
+### Container & DevOps Verification
+```bash
+docker-compose up --build -d
+docker-compose ps
+curl http://localhost:3000/health/ready
+curl http://localhost:3000/metrics
+```
+
+### End-to-End Chat Verification
+```bash
+npm run simulator
+```
+Interactive testing of all user journeys:
+1. Welcome & privacy statement
+2. HOD office timings FAQ query
+3. Formal certificate intake -> Google Form link
+4. Grievance / emergency escalation -> HOD alert

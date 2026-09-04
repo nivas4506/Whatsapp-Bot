@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  # -------------------------------------------------------------
+  # PostgreSQL 16 Relational Database
+  # -------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: whatsapp_helpdesk_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PGUSER:-postgres}
+      POSTGRES_PASSWORD: ${PGPASSWORD:-postgres}
+      POSTGRES_DB: ${PGDATABASE:-whatsapp_helpdesk}
+    ports:
+      - "${PGPORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./src/store/migrations/001_initial_schema.sql:/docker-entrypoint-initdb.d/001_initial_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-postgres} -d ${PGDATABASE:-whatsapp_helpdesk}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - helpdesk_net
+
+  # -------------------------------------------------------------
+  # WhatsApp Student Helpdesk Backend Service
+  # -------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: whatsapp_helpdesk_app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgres://${PGUSER:-postgres}:${PGPASSWORD:-postgres}@postgres:5432/${PGDATABASE:-whatsapp_helpdesk}
+      PGHOST: postgres
+      PGPORT: 5432
+      NODE_ENV: production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health/live"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - helpdesk_net
+
+  # -------------------------------------------------------------
+  # Database Web GUI (Optional: run with --profile debug)
+  # -------------------------------------------------------------
+  adminer:
+    image: adminer:latest
+    container_name: whatsapp_helpdesk_adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    profiles:
+      - debug
+    networks:
+      - helpdesk_net
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  helpdesk_net:
+    driver: bridge

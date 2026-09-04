@@ -1,0 +1,14 @@
+node_modules
+dist
+.git
+.gitignore
+.env
+tests
+*.log
+.DS_Store
+coverage
+k8s
+terraform
+.github
+Product_Requirements_Document.md
+System_Design_Product_Requirements_Document.md

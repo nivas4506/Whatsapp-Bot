@@ -1,0 +1,85 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  lint-and-test:
+    name: Lint, Test & PostgreSQL Integration
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: whatsapp_helpdesk_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: TypeScript Type Checking
+        run: npm run lint
+
+      - name: Apply PostgreSQL Database Migrations
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/whatsapp_helpdesk_test
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: postgres
+          PGPASSWORD: postgres
+          PGDATABASE: whatsapp_helpdesk_test
+        run: npm run migrate
+
+      - name: Execute Vitest Test Suite
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/whatsapp_helpdesk_test
+        run: npm run test
+
+      - name: Security Audit
+        run: npm audit --audit-level=high
+
+      - name: Validate Production Build
+        run: npm run build
+
+  docker-build:
+    name: Validate Docker Build
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: whatsapp-helpdesk-bot:test
