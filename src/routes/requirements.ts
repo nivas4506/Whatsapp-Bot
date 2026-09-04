@@ -29,7 +29,8 @@ requirementsRouter.get('/', async (req: Request, res: Response) => {
  */
 requirementsRouter.get('/:referenceId', async (req: Request, res: Response): Promise<void> => {
   try {
-    const item = await repositories.requirements.findByReferenceId(req.params.referenceId);
+    const referenceId = Array.isArray(req.params.referenceId) ? req.params.referenceId[0] : req.params.referenceId;
+    const item = await repositories.requirements.findByReferenceId(referenceId);
     if (!item) {
       res.status(404).json({ error: 'Requirement not found' });
       return;
@@ -52,7 +53,8 @@ requirementsRouter.patch('/:id', async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    const updated = await repositories.requirements.updateStatus(req.params.id, status, reviewer);
+    const reqId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const updated = await repositories.requirements.updateStatus(reqId, status, reviewer);
     if (!updated) {
       res.status(404).json({ error: 'Requirement not found' });
       return;

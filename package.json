@@ -1,6 +1,7 @@
 {
   "name": "whatsapp-student-helpdesk-bot",
   "version": "1.0.0",
+  "type": "module",
   "description": "WhatsApp Student Helpdesk Assistant for the HOD with PostgreSQL and Production DevOps",
   "main": "dist/server.js",
   "scripts": {
