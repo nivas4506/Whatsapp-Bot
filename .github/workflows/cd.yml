@@ -49,22 +49,3 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  deploy-webhook:
-    name: Trigger Automated Cloud Deployment
-    runs-on: ubuntu-latest
-    needs: publish-container
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Invoke Deploy Webhook (Render / Cloud VPS)
-        continue-on-error: true
-        env:
-          DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL || '' }}
-        run: |
-          if [ -n "$DEPLOY_HOOK_URL" ]; then
-            echo "Triggering automated cloud deployment webhook..."
-            curl -s -X POST "$DEPLOY_HOOK_URL"
-            echo "Cloud deployment triggered successfully!"
-          else
-            echo "DEPLOY_HOOK_URL is not configured in GitHub Secrets. Git-driven auto-deploy (Render/Railway) active."
-          fi
