@@ -13,14 +13,14 @@ export const webhookRouter = Router();
  */
 webhookRouter.get('/', (req: Request, res: Response) => {
   const mode = req.query['hub.mode'];
-  const token = req.query['hub.verify_token'];
+  const token = req.query['hub.verify_token'] ? String(req.query['hub.verify_token']).trim() : '';
   const challenge = req.query['hub.challenge'];
 
-  if (mode === 'subscribe' && token === config.WHATSAPP_VERIFY_TOKEN) {
+  if (mode === 'subscribe' && token === config.WHATSAPP_VERIFY_TOKEN.trim()) {
     console.log('[Webhook] Verification challenge succeeded.');
-    res.status(200).send(challenge);
+    res.status(200).send(String(challenge));
   } else {
-    console.warn('[Webhook] Verification failed: invalid token or mode.', { mode, token });
+    console.warn('[Webhook] Verification failed: invalid token or mode.', { mode, token, expected: config.WHATSAPP_VERIFY_TOKEN });
     res.status(403).json({ error: 'Verification failed' });
   }
 });
