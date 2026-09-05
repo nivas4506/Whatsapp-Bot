@@ -31,21 +31,22 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-// Mount Routes
-app.use('/webhooks/whatsapp', webhookRouter);
-app.use('/internal/requirements', requirementsRouter);
-app.use('/internal/forms/responses/sync', formsSyncRouter);
-app.use('/health', healthRouter);
-app.use('/metrics', metricsRouter);
+// Mount Routes (supporting both root and /api prefixed routes on Vercel)
+app.use(['/webhooks/whatsapp', '/api/webhooks/whatsapp'], webhookRouter);
+app.use(['/internal/requirements', '/api/internal/requirements'], requirementsRouter);
+app.use(['/internal/forms/responses/sync', '/api/internal/forms/responses/sync'], formsSyncRouter);
+app.use(['/health', '/api/health'], healthRouter);
+app.use(['/metrics', '/api/metrics'], metricsRouter);
 
 // Root informative route
-app.get('/', (_req: Request, res: Response) => {
+app.get(['/', '/api'], (_req: Request, res: Response) => {
   res.json({
     service: 'WhatsApp Student Helpdesk Assistant for HOD',
     status: 'operational',
     version: '1.0.0',
     endpoints: {
       webhook: '/webhooks/whatsapp',
+      health: '/health',
       healthLive: '/health/live',
       healthReady: '/health/ready',
       metrics: '/metrics',
