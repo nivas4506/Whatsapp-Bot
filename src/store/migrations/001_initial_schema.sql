@@ -105,14 +105,14 @@ CREATE TABLE IF NOT EXISTS audit_events (
 
 INSERT INTO form_configs (category, url, instructions, status, version)
 VALUES 
-('CERTIFICATE', 'https://forms.gle/certificate-request-sample', 'Complete this Google Form for Bonafide, Course Completion, or Recommendation certificates. Attach ID card copy.', 'ACTIVE', '1.0'),
-('LEAVE', 'https://forms.gle/attendance-leave-sample', 'Complete this form for duty leave or medical leave with medical certificate attached.', 'ACTIVE', '1.0'),
-('ATTENDANCE', 'https://forms.gle/attendance-leave-sample', 'Submit an attendance review request. Mention course code and faculty name.', 'ACTIVE', '1.0'),
-('EXAMINATION', 'https://forms.gle/universal-student-requirement-sample', 'Report examination clash, re-evaluation, or hall ticket issue.', 'ACTIVE', '1.0'),
-('PROJECT_INTERNSHIP', 'https://forms.gle/universal-student-requirement-sample', 'Submit internship NOC or project guide approval details.', 'ACTIVE', '1.0'),
-('APPOINTMENT', 'https://forms.gle/hod-appointment-sample', 'Request an official appointment with the HOD. State the purpose clearly.', 'ACTIVE', '1.0'),
-('COMPLAINT_GRIEVANCE', 'https://forms.gle/student-grievance-sample', 'Department grievance submission. Handled confidentially by HOD.', 'ACTIVE', '1.0'),
-('OTHER_UNKNOWN', 'https://forms.gle/universal-student-requirement-sample', 'Universal student requirement form.', 'ACTIVE', '1.0')
+('CERTIFICATE', 'https://docs.google.com/forms/d/e/1FAIpQLSfySrK4U9_TQdbxuKSGxDymYTRcJQTEpOV-cMFMHztboQVqcQ/viewform', 'Complete this Google Form for Bonafide, Course Completion, or Recommendation certificates. Attach ID card copy.', 'ACTIVE', '1.0'),
+('LEAVE', 'https://docs.google.com/forms/d/e/1FAIpQLSfySrK4U9_TQdbxuKSGxDymYTRcJQTEpOV-cMFMHztboQVqcQ/viewform', 'Complete this form for duty leave or medical leave with medical certificate attached.', 'ACTIVE', '1.0'),
+('ATTENDANCE', 'https://docs.google.com/forms/d/e/1FAIpQLSfySrK4U9_TQdbxuKSGxDymYTRcJQTEpOV-cMFMHztboQVqcQ/viewform', 'Submit an attendance review request. Mention course code and faculty name.', 'ACTIVE', '1.0'),
+('EXAMINATION', 'https://docs.google.com/forms/d/e/1FAIpQLSfySrK4U9_TQdbxuKSGxDymYTRcJQTEpOV-cMFMHztboQVqcQ/viewform', 'Report examination clash, re-evaluation, or hall ticket issue.', 'ACTIVE', '1.0'),
+('PROJECT_INTERNSHIP', 'https://docs.google.com/forms/d/e/1FAIpQLSfySrK4U9_TQdbxuKSGxDymYTRcJQTEpOV-cMFMHztboQVqcQ/viewform', 'Submit internship NOC or project guide approval details.', 'ACTIVE', '1.0'),
+('APPOINTMENT', 'https://docs.google.com/forms/d/e/1FAIpQLSfySrK4U9_TQdbxuKSGxDymYTRcJQTEpOV-cMFMHztboQVqcQ/viewform', 'Request an official appointment with the HOD. State the purpose clearly.', 'ACTIVE', '1.0'),
+('COMPLAINT_GRIEVANCE', 'https://docs.google.com/forms/d/e/1FAIpQLSfySrK4U9_TQdbxuKSGxDymYTRcJQTEpOV-cMFMHztboQVqcQ/viewform', 'Department grievance submission. Handled confidentially by HOD.', 'ACTIVE', '1.0'),
+('OTHER_UNKNOWN', 'https://docs.google.com/forms/d/e/1FAIpQLSfySrK4U9_TQdbxuKSGxDymYTRcJQTEpOV-cMFMHztboQVqcQ/viewform', 'Universal student requirement form.', 'ACTIVE', '1.0')
 ON CONFLICT (category) DO NOTHING;
 
 INSERT INTO faq_entries (category, question_patterns, approved_answer, official_url, owner)

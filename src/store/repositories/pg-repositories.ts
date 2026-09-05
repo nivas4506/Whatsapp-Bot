@@ -216,6 +216,19 @@ export class PgRequirementRepository implements IRequirementRepository {
     return res.rows[0] || null;
   }
 
+  async findLatestPendingByConversationId(conversationId: string): Promise<RequirementRecord | null> {
+    const res = await db.query(
+      `SELECT id, reference_id as "referenceId", conversation_id as "conversationId", category,
+              summary, form_url as "formUrl", form_response_id as "formResponseId", status,
+              urgency, assigned_reviewer as "assignedReviewer", created_at as "createdAt", updated_at as "updatedAt"
+       FROM requirements
+       WHERE conversation_id = $1 AND status = 'FORM_PENDING'
+       ORDER BY created_at DESC LIMIT 1`,
+      [conversationId]
+    );
+    return res.rows[0] || null;
+  }
+
   async list(filters?: {
     status?: RequirementStatus;
     category?: RequirementCategory;

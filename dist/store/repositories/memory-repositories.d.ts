@@ -27,6 +27,7 @@ export declare class MemoryRequirementRepository implements IRequirementReposito
     findByReferenceId(referenceId: string): Promise<RequirementRecord | null>;
     updateStatus(id: string, status: RequirementStatus, reviewer?: string): Promise<RequirementRecord | null>;
     linkFormResponse(referenceId: string, formResponseId: string): Promise<RequirementRecord | null>;
+    findLatestPendingByConversationId(conversationId: string): Promise<RequirementRecord | null>;
     list(filters?: {
         status?: RequirementStatus;
         category?: RequirementCategory;

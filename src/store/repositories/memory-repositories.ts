@@ -212,6 +212,13 @@ export class MemoryRequirementRepository implements IRequirementRepository {
     return req;
   }
 
+  async findLatestPendingByConversationId(conversationId: string): Promise<RequirementRecord | null> {
+    const list = Array.from(this.requirements.values())
+      .filter((r) => r.conversationId === conversationId && r.status === 'FORM_PENDING')
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return list[0] || null;
+  }
+
   async list(filters?: {
     status?: RequirementStatus;
     category?: RequirementCategory;
@@ -321,7 +328,7 @@ export class MemoryFormConfigRepository implements IFormConfigRepository {
       {
         id: 'cfg-cert',
         category: 'CERTIFICATE',
-        url: 'https://forms.gle/certificate-request-sample',
+        url: 'https://docs.google.com/forms/d/e/1FAIpQLSfySrK4U9_TQdbxuKSGxDymYTRcJQTEpOV-cMFMHztboQVqcQ/viewform',
         instructions: 'Complete this Google Form for Bonafide, Course Completion, or Recommendation certificates.',
         status: 'ACTIVE',
         version: '1.0',
@@ -332,7 +339,7 @@ export class MemoryFormConfigRepository implements IFormConfigRepository {
       {
         id: 'cfg-att',
         category: 'ATTENDANCE',
-        url: 'https://forms.gle/attendance-leave-sample',
+        url: 'https://docs.google.com/forms/d/e/1FAIpQLSfySrK4U9_TQdbxuKSGxDymYTRcJQTEpOV-cMFMHztboQVqcQ/viewform',
         instructions: 'Submit an attendance review request. Mention course code and faculty name.',
         status: 'ACTIVE',
         version: '1.0',
@@ -343,7 +350,7 @@ export class MemoryFormConfigRepository implements IFormConfigRepository {
       {
         id: 'cfg-leave',
         category: 'LEAVE',
-        url: 'https://forms.gle/attendance-leave-sample',
+        url: 'https://docs.google.com/forms/d/e/1FAIpQLSfySrK4U9_TQdbxuKSGxDymYTRcJQTEpOV-cMFMHztboQVqcQ/viewform',
         instructions: 'Complete this form for duty leave or medical leave with medical certificate attached.',
         status: 'ACTIVE',
         version: '1.0',
@@ -354,7 +361,7 @@ export class MemoryFormConfigRepository implements IFormConfigRepository {
       {
         id: 'cfg-app',
         category: 'APPOINTMENT',
-        url: 'https://forms.gle/hod-appointment-sample',
+        url: 'https://docs.google.com/forms/d/e/1FAIpQLSfySrK4U9_TQdbxuKSGxDymYTRcJQTEpOV-cMFMHztboQVqcQ/viewform',
         instructions: 'Request an official appointment with the HOD. State the purpose clearly.',
         status: 'ACTIVE',
         version: '1.0',
@@ -365,7 +372,7 @@ export class MemoryFormConfigRepository implements IFormConfigRepository {
       {
         id: 'cfg-griev',
         category: 'COMPLAINT_GRIEVANCE',
-        url: 'https://forms.gle/student-grievance-sample',
+        url: 'https://docs.google.com/forms/d/e/1FAIpQLSfySrK4U9_TQdbxuKSGxDymYTRcJQTEpOV-cMFMHztboQVqcQ/viewform',
         instructions: 'Department grievance submission. Handled confidentially by HOD.',
         status: 'ACTIVE',
         version: '1.0',
@@ -376,7 +383,7 @@ export class MemoryFormConfigRepository implements IFormConfigRepository {
       {
         id: 'cfg-default',
         category: 'OTHER_UNKNOWN',
-        url: 'https://forms.gle/universal-student-requirement-sample',
+        url: 'https://docs.google.com/forms/d/e/1FAIpQLSfySrK4U9_TQdbxuKSGxDymYTRcJQTEpOV-cMFMHztboQVqcQ/viewform',
         instructions: 'Universal student requirement submission form.',
         status: 'ACTIVE',
         version: '1.0',

@@ -48,7 +48,7 @@ describe('Conversation Orchestrator', () => {
     expect(res?.nextState).toBe('FORM_PENDING');
     expect(res?.referenceId).toMatch(/^HOD-REQ-/);
     expect(res?.replyText).toContain('Formal Requirement Recorded');
-    expect(res?.ctaUrl?.url).toContain('https://forms.gle/');
+    expect(res?.ctaUrl?.url).toMatch(/google\.com\/forms|forms\.gle/);
 
     // Verify stored in repository
     const storedReq = await repositories.requirements.findByReferenceId(res!.referenceId!);
