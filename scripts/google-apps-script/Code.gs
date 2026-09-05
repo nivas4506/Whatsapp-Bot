@@ -74,9 +74,15 @@ function onFormSubmit(e) {
       query: queries + (issues ? " | Issues: " + issues : "")
     };
 
+    var headers = {
+      "Content-Type": "application/json",
+      "Bypass-Tunnel-Reminder": "true"
+    };
+
     var options = {
       method: "post",
       contentType: "application/json",
+      headers: headers,
       payload: JSON.stringify(payload),
       muteHttpExceptions: true
     };

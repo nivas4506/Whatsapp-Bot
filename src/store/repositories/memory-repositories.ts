@@ -25,6 +25,10 @@ import {
 export class MemoryContactRepository implements IContactRepository {
   private contacts: Map<string, StudentContact> = new Map();
 
+  async findById(id: string): Promise<StudentContact | null> {
+    return this.contacts.get(id) || null;
+  }
+
   async findByPhone(phone: string): Promise<StudentContact | null> {
     for (const c of this.contacts.values()) {
       if (c.providerContactId === phone) return c;
@@ -59,6 +63,10 @@ export class MemoryContactRepository implements IContactRepository {
 
 export class MemoryConversationRepository implements IConversationRepository {
   private conversations: Map<string, Conversation> = new Map();
+
+  async findById(id: string): Promise<Conversation | null> {
+    return this.conversations.get(id) || null;
+  }
 
   async getActiveByContactId(contactId: string): Promise<Conversation | null> {
     const list = Array.from(this.conversations.values())

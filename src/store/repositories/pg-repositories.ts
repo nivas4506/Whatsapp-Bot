@@ -24,6 +24,16 @@ import {
 } from './interfaces.js';
 
 export class PgContactRepository implements IContactRepository {
+  async findById(id: string): Promise<StudentContact | null> {
+    const res = await db.query(
+      `SELECT id, provider_contact_id as "providerContactId", phone_hash as "phoneHash", 
+              consent_state as "consentState", created_at as "createdAt", last_seen_at as "lastSeenAt"
+       FROM student_contacts WHERE id = $1`,
+      [id]
+    );
+    return res.rows[0] || null;
+  }
+
   async findByPhone(phone: string): Promise<StudentContact | null> {
     const res = await db.query(
       `SELECT id, provider_contact_id as "providerContactId", phone_hash as "phoneHash", 
@@ -54,6 +64,16 @@ export class PgContactRepository implements IContactRepository {
 }
 
 export class PgConversationRepository implements IConversationRepository {
+  async findById(id: string): Promise<Conversation | null> {
+    const res = await db.query(
+      `SELECT id, student_contact_id as "studentContactId", state, locale, 
+              last_message_at as "lastMessageAt", assigned_reviewer as "assignedReviewer", closed_at as "closedAt"
+       FROM conversations WHERE id = $1`,
+      [id]
+    );
+    return res.rows[0] || null;
+  }
+
   async getActiveByContactId(contactId: string): Promise<Conversation | null> {
     const res = await db.query(
       `SELECT id, student_contact_id as "studentContactId", state, locale, 

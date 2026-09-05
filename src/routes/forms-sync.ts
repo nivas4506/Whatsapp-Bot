@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { repositories } from '../store/repositories/index.js';
+import { notificationService } from '../services/notification-service.js';
+import { whatsappClient } from '../adapters/whatsapp/client.js';
 
 export const formsSyncRouter = Router();
 
@@ -49,6 +51,32 @@ formsSyncRouter.post('/', async (req: Request, res: Response): Promise<void> => 
     }
 
     console.log(`[Form Sync] Successfully linked Form Response ${formResponseId} to Ref ${updated.referenceId}`);
+
+    // 1. Notify HOD directly on WhatsApp
+    await notificationService.notifyFormSynced(updated.referenceId, {
+      studentName: name,
+      phone,
+      query,
+    });
+
+    // 2. Notify Student on WhatsApp (if student phone is identifiable)
+    if (phone) {
+      const cleanPhone = phone.replace(/[^0-9]/g, '');
+      try {
+        const studentConfirmMsg =
+          `✅ *Form Submission Received*\n\n` +
+          `Your official department form submission for Reference *${updated.referenceId}* has been received and linked.\n\n` +
+          `Your request has been placed in the review queue for ${name ? name : 'you'}. You will receive status updates directly here on WhatsApp.`;
+
+        await whatsappClient.send({
+          to: cleanPhone,
+          text: studentConfirmMsg,
+        });
+      } catch (err: any) {
+        console.warn(`[Form Sync] Note: Could not send WhatsApp confirmation to student phone ${cleanPhone}:`, err.message);
+      }
+    }
+
     res.json({
       message: 'Form response synchronized successfully',
       requirement: updated,

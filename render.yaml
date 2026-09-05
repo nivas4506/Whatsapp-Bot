@@ -1,0 +1,68 @@
+services:
+  - type: web
+    name: whatsapp-hod-bot
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      - key: DEPARTMENT_NAME
+        value: "Department of Computer Science & Engineering"
+      - key: INSTITUTION_NAME
+        value: "National Institute of Technology"
+      - key: HOD_DISPLAY_NAME
+        value: "Dr. A. Sharma (Head of Department)"
+      - key: HOD_OFFICE_ROOM
+        value: "Room 304, Academic Block A"
+      - key: HOD_OFFICE_HOURS
+        value: "Monday to Friday, 10:00 AM - 1:00 PM and 2:30 PM - 4:30 PM"
+      - key: SUPPORT_HOURS_START
+        value: "09:00"
+      - key: SUPPORT_HOURS_END
+        value: "17:00"
+      - key: SUPPORT_DAYS
+        value: "1,2,3,4,5"
+      - key: WHATSAPP_VERIFY_TOKEN
+        sync: false
+      - key: WHATSAPP_API_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: WHATSAPP_BUSINESS_ACCOUNT_ID
+        sync: false
+      - key: WHATSAPP_APP_SECRET
+        sync: false
+      - key: WHATSAPP_API_VERSION
+        value: "v20.0"
+      - key: WHATSAPP_MOCK_MODE
+        value: "false"
+      - key: HOD_WHATSAPP_NUMBER
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: whatsapp-helpdesk-db
+          property: connectionString
+      - key: DEFAULT_GOOGLE_FORM_URL
+        value: "https://docs.google.com/forms/d/e/1FAIpQLSfySrK4U9_TQdbxuKSGxDymYTRcJQTEpOV-cMFMHztboQVqcQ/viewform"
+      - key: NOTIFY_ON_ESCALATION
+        value: "true"
+      - key: NOTIFY_ON_NEW_REQUIREMENT
+        value: "true"
+      - key: METRICS_ENABLED
+        value: "true"
+
+databases:
+  - name: whatsapp-helpdesk-db
+    plan: free
+    region: oregon
+    databaseName: whatsapp_helpdesk
+    user: postgres

@@ -13,12 +13,14 @@ import {
 } from '../../types/index.js';
 
 export interface IContactRepository {
+  findById(id: string): Promise<StudentContact | null>;
   findByPhone(phone: string): Promise<StudentContact | null>;
   upsert(phone: string, consentState?: boolean): Promise<StudentContact>;
   updateLastSeen(id: string): Promise<void>;
 }
 
 export interface IConversationRepository {
+  findById(id: string): Promise<Conversation | null>;
   getActiveByContactId(contactId: string): Promise<Conversation | null>;
   create(contactId: string, state?: ConversationState, locale?: string): Promise<Conversation>;
   updateState(id: string, state: ConversationState): Promise<void>;

@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: whatsapp_bot_db_prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PGUSER:-postgres}
+      POSTGRES_PASSWORD: ${PGPASSWORD:-postgres_secure_pass_2026}
+      POSTGRES_DB: ${PGDATABASE:-whatsapp_helpdesk}
+    volumes:
+      - pgdata_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-postgres} -d ${PGDATABASE:-whatsapp_helpdesk}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - bot_prod_net
+
+  migrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: whatsapp_bot_migration
+    restart: "no"
+    command: ["npm", "run", "migrate"]
+    environment:
+      DATABASE_URL: postgres://${PGUSER:-postgres}:${PGPASSWORD:-postgres_secure_pass_2026}@postgres:5432/${PGDATABASE:-whatsapp_helpdesk}
+      PGHOST: postgres
+      PGPORT: 5432
+      PGUSER: ${PGUSER:-postgres}
+      PGPASSWORD: ${PGPASSWORD:-postgres_secure_pass_2026}
+      PGDATABASE: ${PGDATABASE:-whatsapp_helpdesk}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - bot_prod_net
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: whatsapp_bot_app_prod
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgres://${PGUSER:-postgres}:${PGPASSWORD:-postgres_secure_pass_2026}@postgres:5432/${PGDATABASE:-whatsapp_helpdesk}
+      PGHOST: postgres
+      PGPORT: 5432
+      PGUSER: ${PGUSER:-postgres}
+      PGPASSWORD: ${PGPASSWORD:-postgres_secure_pass_2026}
+      PGDATABASE: ${PGDATABASE:-whatsapp_helpdesk}
+      WHATSAPP_VERIFY_TOKEN: ${WHATSAPP_VERIFY_TOKEN}
+      WHATSAPP_API_TOKEN: ${WHATSAPP_API_TOKEN}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID}
+      WHATSAPP_BUSINESS_ACCOUNT_ID: ${WHATSAPP_BUSINESS_ACCOUNT_ID}
+      WHATSAPP_APP_SECRET: ${WHATSAPP_APP_SECRET}
+      WHATSAPP_MOCK_MODE: "false"
+      HOD_WHATSAPP_NUMBER: ${HOD_WHATSAPP_NUMBER}
+      DEFAULT_GOOGLE_FORM_URL: ${DEFAULT_GOOGLE_FORM_URL}
+      NOTIFY_ON_ESCALATION: "true"
+      NOTIFY_ON_NEW_REQUIREMENT: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - bot_prod_net
+
+volumes:
+  pgdata_prod:
+    driver: local
+
+networks:
+  bot_prod_net:
+    driver: bridge

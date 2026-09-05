@@ -13,11 +13,15 @@ const server = app.listen(PORT, async () => {
   console.log(`=======================================================`);
 
   // Check database health on startup
-  const isDbHealthy = await db.isHealthy();
-  if (isDbHealthy) {
-    console.log('✅ PostgreSQL database connection established.');
+  if (process.env.USE_MEMORY_STORE === 'true') {
+    console.log('⚡ In-memory repository active. Ready to process WhatsApp webhooks!');
   } else {
-    console.warn('⚠️ PostgreSQL database is not reachable at startup. Service running in degraded mode.');
+    const isDbHealthy = await db.isHealthy();
+    if (isDbHealthy) {
+      console.log('✅ PostgreSQL database connection established.');
+    } else {
+      console.warn('⚠️ PostgreSQL database is not reachable at startup. Service running in degraded mode.');
+    }
   }
 });
 
