@@ -44,8 +44,16 @@ const envSchema = z.object({
   GRIEVANCE_FORM_URL: z.string().url().default('https://forms.gle/student-grievance-sample'),
 
   // Notifications
-  HOD_NOTIFICATION_EMAIL: z.string().email().default('hod.cse@institution.edu'),
-  ADMIN_NOTIFICATION_EMAIL: z.string().email().default('admin.cse@institution.edu'),
+  HOD_NOTIFICATION_EMAIL: z
+    .string()
+    .transform((s) => s.replace(/[\[\]]/g, '').trim())
+    .pipe(z.string().email())
+    .default('hod.cse@institution.edu'),
+  ADMIN_NOTIFICATION_EMAIL: z
+    .string()
+    .transform((s) => s.replace(/[\[\]]/g, '').trim())
+    .pipe(z.string().email())
+    .default('admin.cse@institution.edu'),
   HOD_WHATSAPP_NUMBER: z.string().default(''), // HOD's WhatsApp number for direct WhatsApp-only alerts
   NOTIFY_ON_ESCALATION: z.coerce.boolean().default(true),
   NOTIFY_ON_NEW_REQUIREMENT: z.coerce.boolean().default(true),

@@ -9,14 +9,16 @@ export class Database {
   private isConnected: boolean = false;
 
   private constructor() {
+    const isSsl =
+      config.PGSSLMODE === 'require' ||
+      config.DATABASE_URL.includes('sslmode=require') ||
+      config.DATABASE_URL.includes('ssl=true') ||
+      config.DATABASE_URL.includes('neon.tech') ||
+      config.DATABASE_URL.includes('supabase.co');
+
     this.pool = new Pool({
       connectionString: config.DATABASE_URL,
-      host: config.PGHOST,
-      port: config.PGPORT,
-      user: config.PGUSER,
-      password: config.PGPASSWORD,
-      database: config.PGDATABASE,
-      ssl: config.PGSSLMODE === 'require' ? { rejectUnauthorized: false } : false,
+      ssl: isSsl ? { rejectUnauthorized: false } : false,
       max: config.PGPOOL_MAX,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
