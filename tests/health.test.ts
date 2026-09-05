@@ -3,6 +3,12 @@ import request from 'supertest';
 import { app } from '../src/app.js';
 
 describe('Health & Observability APIs', () => {
+  it('GET /health should return 200 ok status', async () => {
+    const res = await request(app).get('/health');
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('ok');
+  });
+
   it('GET /health/live should return 200 live status', async () => {
     const res = await request(app).get('/health/live');
     expect(res.status).toBe(200);

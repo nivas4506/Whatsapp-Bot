@@ -3,6 +3,10 @@ import { db } from '../store/db.js';
 
 export const healthRouter = Router();
 
+healthRouter.get('/', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 healthRouter.get('/live', (_req: Request, res: Response) => {
   res.status(200).json({ status: 'live', timestamp: new Date().toISOString() });
 });
