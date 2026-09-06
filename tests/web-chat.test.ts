@@ -12,6 +12,10 @@ describe('Web Chat', () => {
     expect(res.text).toContain('/chat/message');
     expect(res.text).toContain('data.ctaUrl');
     expect(res.text).toContain("link.target = '_blank'");
+    expect(res.text).toContain('starter-grid');
+    expect(res.text).toContain('formatReply');
+    expect(res.text).toContain('typing-indicator');
+    expect(res.text).toContain('Clear');
   });
 
   it('POST /chat/message returns a bot reply for a student message', async () => {
