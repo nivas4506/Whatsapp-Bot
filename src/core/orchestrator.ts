@@ -64,7 +64,9 @@ export class ConversationOrchestrator {
     // Zero-Dashboard WhatsApp Management: HOD In-Chat Commands & Student Status Tracking
     const cleanFrom = from.replace(/\D/g, '');
     const cleanHOD = config.HOD_WHATSAPP_NUMBER ? config.HOD_WHATSAPP_NUMBER.replace(/\D/g, '') : '';
-    const isSenderHOD = Boolean(cleanHOD && cleanFrom === cleanHOD);
+    const isSenderHOD = Boolean(
+      cleanHOD && (cleanFrom === cleanHOD || cleanFrom.endsWith(cleanHOD) || cleanHOD.endsWith(cleanFrom))
+    );
 
     const trimmed = text.trim();
     const upper = trimmed.toUpperCase();

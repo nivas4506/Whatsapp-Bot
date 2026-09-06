@@ -3,6 +3,31 @@ import { z } from 'zod';
 
 dotenv.config();
 
+const unsetIfPlaceholder = (value: unknown) => {
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  const trimmed = value.trim();
+  const normalized = trimmed.replace(/[\[\]<>]/g, '').trim().toLowerCase();
+
+  if (
+    !trimmed ||
+    trimmed.startsWith('[') ||
+    trimmed.startsWith('<') ||
+    normalized.startsWith('your ') ||
+    normalized.startsWith('your_') ||
+    normalized.includes('placeholder')
+  ) {
+    return undefined;
+  }
+
+  return trimmed;
+};
+
+const defaultedUrl = (fallback: string) => z.preprocess(unsetIfPlaceholder, z.string().url().default(fallback));
+const defaultedEmail = (fallback: string) => z.preprocess(unsetIfPlaceholder, z.string().email().default(fallback));
+
 const envSchema = z.object({
   PORT: z.coerce.number().default(3000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -37,24 +62,23 @@ const envSchema = z.object({
   PGPOOL_MAX: z.coerce.number().default(20),
 
   // Forms
-  DEFAULT_GOOGLE_FORM_URL: z.string().url().default('https://forms.gle/universal-student-requirement-sample'),
-  CERTIFICATE_FORM_URL: z.string().url().default('https://forms.gle/certificate-request-sample'),
-  ATTENDANCE_FORM_URL: z.string().url().default('https://forms.gle/attendance-leave-sample'),
-  APPOINTMENT_FORM_URL: z.string().url().default('https://forms.gle/hod-appointment-sample'),
-  GRIEVANCE_FORM_URL: z.string().url().default('https://forms.gle/student-grievance-sample'),
+  DEFAULT_GOOGLE_FORM_URL: defaultedUrl('https://forms.gle/universal-student-requirement-sample'),
+  CERTIFICATE_FORM_URL: defaultedUrl('https://forms.gle/certificate-request-sample'),
+  ATTENDANCE_FORM_URL: defaultedUrl('https://forms.gle/attendance-leave-sample'),
+  APPOINTMENT_FORM_URL: defaultedUrl('https://forms.gle/hod-appointment-sample'),
+  GRIEVANCE_FORM_URL: defaultedUrl('https://forms.gle/student-grievance-sample'),
 
   // Notifications
-  HOD_NOTIFICATION_EMAIL: z
+  HOD_NOTIFICATION_EMAIL: defaultedEmail('hod.cse@institution.edu'),
+  ADMIN_NOTIFICATION_EMAIL: defaultedEmail('admin.cse@institution.edu'),
+  HOD_WHATSAPP_NUMBER: z
     .string()
-    .transform((s) => s.replace(/[\[\]]/g, '').trim())
-    .pipe(z.string().email())
-    .default('hod.cse@institution.edu'),
-  ADMIN_NOTIFICATION_EMAIL: z
-    .string()
-    .transform((s) => s.replace(/[\[\]]/g, '').trim())
-    .pipe(z.string().email())
-    .default('admin.cse@institution.edu'),
-  HOD_WHATSAPP_NUMBER: z.string().default(''), // HOD's WhatsApp number for direct WhatsApp-only alerts
+    .default('')
+    .transform((val) => {
+      const digits = val.replace(/\D/g, '');
+      if (digits.length === 10) return `91${digits}`;
+      return digits;
+    }),
   NOTIFY_ON_ESCALATION: z.coerce.boolean().default(true),
   NOTIFY_ON_NEW_REQUIREMENT: z.coerce.boolean().default(true),
 
