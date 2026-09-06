@@ -122,7 +122,7 @@ const chatPage = `<!doctype html>
       border-color: #c6dced;
     }
 
-    .quick-actions {
+    .quick-actions, .link-actions {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
@@ -141,6 +141,19 @@ const chatPage = `<!doctype html>
       padding: 8px 10px;
       cursor: pointer;
       min-height: 36px;
+    }
+
+    .link-actions a {
+      border: 1px solid var(--brand);
+      background: var(--brand);
+      color: #fff;
+      border-radius: 8px;
+      padding: 9px 12px;
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+      font-weight: 700;
     }
 
     form {
@@ -225,7 +238,7 @@ const chatPage = `<!doctype html>
     const sessionId = localStorage.getItem(sessionKey) || crypto.randomUUID();
     localStorage.setItem(sessionKey, sessionId);
 
-    function addMessage(text, role, options) {
+    function addMessage(text, role, options, ctaUrl) {
       const bubble = document.createElement('article');
       bubble.className = 'message ' + role;
       bubble.textContent = text;
@@ -241,6 +254,18 @@ const chatPage = `<!doctype html>
           actions.appendChild(button);
         });
         bubble.appendChild(actions);
+      }
+
+      if (ctaUrl && ctaUrl.url) {
+        const links = document.createElement('div');
+        links.className = 'link-actions';
+        const link = document.createElement('a');
+        link.href = ctaUrl.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = ctaUrl.title || 'Open Google Form';
+        links.appendChild(link);
+        bubble.appendChild(links);
       }
 
       messages.appendChild(bubble);
@@ -265,7 +290,7 @@ const chatPage = `<!doctype html>
         if (!response.ok) {
           throw new Error(data.error || 'Chat request failed');
         }
-        addMessage(data.replyText, 'bot', data.interactiveOptions);
+        addMessage(data.replyText, 'bot', data.interactiveOptions, data.ctaUrl);
       } catch (error) {
         addMessage('The helpdesk could not reply right now. Please try again.', 'bot error');
       } finally {

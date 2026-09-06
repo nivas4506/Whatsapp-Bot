@@ -71,8 +71,7 @@ export class ConversationOrchestrator {
     const refMatch = upper.match(/HOD-REQ-\d{8}-[A-Z0-9]+/i);
     const isStatusQuery = (upper.startsWith('STATUS') || upper.startsWith('TRACK')) && refMatch;
     const isDirectRef = Boolean(refMatch && trimmed.length <= 32);
-    const isGreeting =
-      ['hi', 'hello', 'hey', 'start', 'help'].includes(text.toLowerCase().trim()) || isFirstTime;
+    const isGreeting = ['hi', 'hello', 'hey', 'start', 'help'].includes(text.toLowerCase().trim());
 
     if (isSenderHOD && (upper === 'LIST' || upper === 'PENDING')) {
       // HOD Command: List pending items

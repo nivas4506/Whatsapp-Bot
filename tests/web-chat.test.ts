@@ -10,6 +10,8 @@ describe('Web Chat', () => {
     expect(res.headers['content-type']).toContain('text/html');
     expect(res.text).toContain('Student Helpdesk');
     expect(res.text).toContain('/chat/message');
+    expect(res.text).toContain('data.ctaUrl');
+    expect(res.text).toContain("link.target = '_blank'");
   });
 
   it('POST /chat/message returns a bot reply for a student message', async () => {
@@ -22,6 +24,19 @@ describe('Web Chat', () => {
     expect(res.body.conversationId).toBeTruthy();
     expect(res.body.nextState).toBe('UNDERSTANDING');
     expect(res.body.interactiveOptions).toHaveLength(3);
+  });
+
+  it('POST /chat/message attaches the Google Form for formal requests', async () => {
+    const res = await request(app)
+      .post('/chat/message')
+      .send({ sessionId: 'student-browser-form-1', text: 'I need a bonafide certificate' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.replyText).toContain('Formal Requirement Recorded');
+    expect(res.body.ctaUrl).toEqual({
+      title: 'Open Google Form',
+      url: 'https://docs.google.com/forms/d/e/1FAIpQLSfySrK4U9_TQdbxuKSGxDymYTRcJQTEpOV-cMFMHztboQVqcQ/viewform',
+    });
   });
 
   it('POST /chat/message rejects empty messages', async () => {
