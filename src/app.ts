@@ -34,6 +34,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 // Mount Routes (supporting both root and /api prefixed routes on Vercel)
 app.use(['/webhooks/whatsapp', '/api/webhooks/whatsapp'], webhookRouter);
+app.post('/', webhookRouter);
 app.use(['/internal/requirements', '/api/internal/requirements'], requirementsRouter);
 app.use(['/internal/forms/responses/sync', '/api/internal/forms/responses/sync'], formsSyncRouter);
 app.use(['/health', '/api/health'], healthRouter);

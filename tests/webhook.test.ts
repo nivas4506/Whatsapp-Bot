@@ -76,4 +76,51 @@ describe('WhatsApp Webhook API', () => {
     expect(res.status).toBe(200);
     expect(res.text).toBe('EVENT_RECEIVED');
   });
+
+  it('POST / should accept valid webhook payloads for root callback URL configurations', async () => {
+    const payload = {
+      object: 'whatsapp_business_account',
+      entry: [
+        {
+          id: '123456',
+          changes: [
+            {
+              field: 'messages',
+              value: {
+                messaging_product: 'whatsapp',
+                metadata: {
+                  display_phone_number: '1234567890',
+                  phone_number_id: config.WHATSAPP_PHONE_NUMBER_ID,
+                },
+                messages: [
+                  {
+                    from: '919876543210',
+                    id: 'wamid.test.root.001',
+                    timestamp: Math.floor(Date.now() / 1000).toString(),
+                    type: 'text',
+                    text: { body: 'hi' },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const rawPayload = JSON.stringify(payload);
+    const signature = crypto
+      .createHmac('sha256', config.WHATSAPP_APP_SECRET)
+      .update(rawPayload)
+      .digest('hex');
+
+    const res = await request(app)
+      .post('/')
+      .set('X-Hub-Signature-256', `sha256=${signature}`)
+      .set('Content-Type', 'application/json')
+      .send(rawPayload);
+
+    expect(res.status).toBe(200);
+    expect(res.text).toBe('EVENT_RECEIVED');
+  });
 });
