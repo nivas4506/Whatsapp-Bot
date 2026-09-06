@@ -16,8 +16,10 @@ import {
 
 export class ConversationOrchestrator {
   async processInboundMessage(
-    inbound: NormalizedInboundMessage
+    inbound: NormalizedInboundMessage,
+    options: { dispatchOutbound?: boolean } = {}
   ): Promise<OrchestrationResponse | null> {
+    const dispatchOutbound = options.dispatchOutbound ?? true;
     const { from, providerMessageId, text, type } = inbound;
 
     // 1. Idempotency Check: Prevent duplicate processing of retried webhook events
@@ -323,12 +325,14 @@ export class ConversationOrchestrator {
     await repositories.conversations.updateState(conversation.id, nextState);
 
     // 7. Dispatch Outbound Message via WhatsApp Client
-    const outboundResult = await whatsappClient.send({
-      to: from,
-      text: replyText,
-      interactiveButtons: interactiveOptions,
-      ctaUrl,
-    });
+    const outboundResult = dispatchOutbound
+      ? await whatsappClient.send({
+          to: from,
+          text: replyText,
+          interactiveButtons: interactiveOptions,
+          ctaUrl,
+        })
+      : { success: true, messageId: `web_out_${providerMessageId}` };
 
     // 8. Record Outbound Message in DB
     await repositories.messages.recordMessage(

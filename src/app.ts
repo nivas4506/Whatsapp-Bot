@@ -4,6 +4,7 @@ import { requirementsRouter } from './routes/requirements.js';
 import { formsSyncRouter } from './routes/forms-sync.js';
 import { healthRouter } from './routes/health.js';
 import { metricsRouter, httpRequestDuration } from './routes/metrics.js';
+import { webChatRouter } from './routes/web-chat.js';
 import { config } from './config/index.js';
 
 export const app = express();
@@ -39,6 +40,7 @@ app.use(['/internal/requirements', '/api/internal/requirements'], requirementsRo
 app.use(['/internal/forms/responses/sync', '/api/internal/forms/responses/sync'], formsSyncRouter);
 app.use(['/health', '/api/health'], healthRouter);
 app.use(['/metrics', '/api/metrics'], metricsRouter);
+app.use(['/chat', '/api/chat'], webChatRouter);
 
 // Root informative route
 app.get(['/', '/api'], (req: Request, res: Response) => {
